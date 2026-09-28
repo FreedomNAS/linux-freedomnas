@@ -1,0 +1,24 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: linux-freedomnas
+Source: https://codeberg.org/FreedomNAS/linux-freedomnas
+
+Files: *
+Copyright: Linus Torvalds and many others
+License: GPL-2.0-only WITH Linux-syscall-note
+ The Linux kernel is distributed under the GNU General Public License,
+ version 2, with the syscall exception; individual files carry their own
+ SPDX identifiers, and the full texts are in the LICENSES directory of the
+ kernel source. On Debian systems, the GPL version 2 is in
+ /usr/share/common-licenses/GPL-2.
+
+Files: zfs-*
+Copyright: The OpenZFS contributors
+License: CDDL-1.0
+ OpenZFS is distributed under the Common Development and Distribution
+ License, version 1.0. The full text is in the LICENSE file of the OpenZFS
+ source and at https://opensource.org/license/cddl-1-0.
+
+Files: debian/* PKGBUILD *.patch config.x86_64
+Copyright: The FreedomNAS contributors, Arch Linux
+License: GPL-2.0-or-later
+ On Debian systems, the GPL version 2 is in /usr/share/common-licenses/GPL-2.

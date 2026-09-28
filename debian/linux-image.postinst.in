@@ -1,0 +1,17 @@
+#!/bin/sh
+set -e
+
+version=@KREL@
+image_path=/boot/vmlinuz-$version
+
+if [ "$1" = configure ]; then
+    depmod -a -F "/boot/System.map-$version" "$version"
+    if [ -d /etc/kernel/postinst.d ]; then
+        DEB_MAINT_PARAMS="$*" run-parts --report --exit-on-error --arg="$version" \
+            --arg="$image_path" /etc/kernel/postinst.d
+    fi
+fi
+
+#DEBHELPER#
+
+exit 0

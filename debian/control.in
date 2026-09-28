@@ -1,0 +1,71 @@
+Source: linux-freedomnas
+Section: kernel
+Priority: optional
+Maintainer: FreedomNAS Team <dev@freedomnas.io>
+Build-Depends: debhelper-compat (= 13),
+ bc, bison, flex, cpio, file, kmod, rsync, xz-utils, zstd,
+ dwarves, openssl, perl, python3,
+ libelf-dev, libssl-dev, zlib1g-dev,
+ rustc, rust-src, bindgen, libclang-dev,
+ gawk, uuid-dev, libblkid-dev, libudev-dev, libaio-dev,
+ libtirpc-dev, libpam0g-dev
+Standards-Version: 4.7.0
+Rules-Requires-Root: no
+Homepage: https://codeberg.org/FreedomNAS/linux-freedomnas
+Vcs-Browser: https://codeberg.org/FreedomNAS/linux-freedomnas
+Vcs-Git: https://codeberg.org/FreedomNAS/linux-freedomnas.git
+
+Package: linux-image-@KREL@
+Architecture: amd64
+Depends: kmod, zfsutils-freedomnas (>= ${binary:Version}), ${misc:Depends}
+Recommends: dracut, firmware-linux-free
+Suggests: linux-headers-@KREL@
+Conflicts: zfs-dkms
+Provides: linux-image, wireguard-modules (= 1.0.0)
+Description: FreedomNAS LTS Linux @KREL@ with OpenZFS
+ The kernel and modules of Arch's linux-lts, built for Debian, with the
+ OpenZFS @ZFSVER@ modules compiled in the same build and installed under
+ extra/zfs. No DKMS: the kernel and its ZFS arrive together or not at all.
+
+Package: linux-headers-@KREL@
+Architecture: amd64
+Depends: gcc, make, libc6-dev, ${shlibs:Depends}, ${misc:Depends}
+Description: Headers for building modules for linux-image-@KREL@
+ Headers, Kconfig files and build scripts for out-of-tree modules against
+ the FreedomNAS kernel @KREL@.
+
+Package: linux-image-freedomnas
+Architecture: amd64
+Depends: linux-image-@KREL@ (= ${binary:Version}), ${misc:Depends}
+Description: FreedomNAS LTS Linux with OpenZFS (latest)
+ Depends on the newest FreedomNAS kernel, so installing this package keeps
+ the system on it. Earlier kernels stay installed until removed.
+
+Package: linux-headers-freedomnas
+Architecture: amd64
+Depends: linux-headers-@KREL@ (= ${binary:Version}), ${misc:Depends}
+Description: Headers for the FreedomNAS kernel (latest)
+ Depends on the headers of the newest FreedomNAS kernel.
+
+Package: zfsutils-freedomnas
+Section: admin
+Architecture: amd64
+Depends: gawk, python3, ${shlibs:Depends}, ${misc:Depends}
+Suggests: dracut
+Provides: zfsutils, zfsutils-linux (= @ZFSVER@), zfs-zed (= @ZFSVER@),
+ zfs-dracut (= @ZFSVER@), libpam-zfs (= @ZFSVER@),
+ libnvpair3linux (= @ZFSVER@), libuutil3linux (= @ZFSVER@),
+ libzfs7linux (= @ZFSVER@), libzpool7linux (= @ZFSVER@),
+ libzfsbootenv1linux (= @ZFSVER@), libzfslinux-dev (= @ZFSVER@)
+Conflicts: zfs-fuse, zfs-dkms, zfs-initramfs, zfsutils-linux, zfs-zed,
+ zfs-dracut, libpam-zfs, libnvpair3linux, libuutil3linux, libzfs6linux,
+ libzfs7linux, libzpool6linux, libzpool7linux, libzfsbootenv1linux,
+ libzfslinux-dev
+Replaces: zfsutils-linux, zfs-zed, zfs-dracut, libpam-zfs, libnvpair3linux,
+ libuutil3linux, libzfs6linux, libzfs7linux, libzpool6linux, libzpool7linux,
+ libzfsbootenv1linux, libzfslinux-dev
+Description: OpenZFS @ZFSVER@ userspace, the exact version in the FreedomNAS kernel
+ zpool, zfs, zed, the libraries, the PAM module and the dracut module of
+ OpenZFS @ZFSVER@, built together with linux-image-@KREL@. Stands in for
+ Debian's zfsutils-linux, zfs-zed and zfs-dracut, so the userspace can
+ never drift from the modules the kernel carries.

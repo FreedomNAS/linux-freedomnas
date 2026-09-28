@@ -1,0 +1,119 @@
+#!/usr/bin/make -f
+
+SHELL := /bin/bash
+
+pkgbuild = $(shell bash -c 'source ./PKGBUILD >/dev/null 2>&1; echo "$$$(1)"')
+PKGVER := $(call pkgbuild,pkgver)
+PKGREL := $(call pkgbuild,pkgrel)
+ZFSVER := $(call pkgbuild,_zfsver)
+PKGSUFFIX := $(patsubst linux%,%,$(call pkgbuild,pkgbase))
+KREL := $(PKGVER)-$(PKGREL)$(PKGSUFFIX)
+
+SRC := linux-$(PKGVER)
+ZFSSRC := zfs-$(ZFSVER)
+IMG := $(CURDIR)/debian/linux-image-$(KREL)
+HDR := $(CURDIR)/debian/linux-headers-$(KREL)
+UTL := $(CURDIR)/debian/zfsutils-freedomnas
+
+include /usr/share/dpkg/architecture.mk
+include /usr/share/dpkg/pkg-info.mk
+
+DEB_BUILD_MAINT_OPTIONS := hardening=+all
+include /usr/share/dpkg/buildflags.mk
+
+NUMJOBS := $(patsubst parallel=%,%,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
+KMAKE := $(MAKE) --no-print-directory -j$(or $(NUMJOBS),1)
+
+export KBUILD_BUILD_HOST := freedomnas
+export KBUILD_BUILD_USER := linux-freedomnas
+export KBUILD_BUILD_TIMESTAMP := $(shell date -Rud @$(SOURCE_DATE_EPOCH))
+
+KERNEL_PACKAGES := -Nlinux-image-$(KREL) -Nlinux-headers-$(KREL)
+
+%:
+	dh $@
+
+prepare:
+	sed -e 's/@KREL@/$(KREL)/g' -e 's/@ZFSVER@/$(ZFSVER)/g' debian/control.in > debian/control
+	for s in preinst postinst prerm postrm; do \
+	  sed 's/@KREL@/$(KREL)/g' debian/linux-image.$$s.in > debian/linux-image-$(KREL).$$s; \
+	done
+	sed 's/@KREL@/$(KREL)/g' debian/linux-headers.postinst.in > debian/linux-headers-$(KREL).postinst
+	sed -i '1s/([^)]*)/($(PKGVER)-$(PKGREL))/' debian/changelog
+
+override_dh_auto_clean:
+	rm -rf $(SRC) $(ZFSSRC)
+
+override_dh_auto_configure:
+	tar -xf linux-$(PKGVER).tar.xz
+	tar -xf zfs-$(ZFSVER).tar.gz
+	for p in 0*.patch; do patch -d $(SRC) -Np1 < $$p; done
+	echo "-$(PKGREL)" > $(SRC)/localversion.10-pkgrel
+	echo "$(PKGSUFFIX)" > $(SRC)/localversion.20-pkgname
+	cp config.x86_64 $(SRC)/.config
+	$(KMAKE) -C $(SRC) olddefconfig
+	diff -u config.x86_64 $(SRC)/.config || :
+	test "$$($(KMAKE) -s -C $(SRC) kernelrelease)" = "$(KREL)"
+
+override_dh_auto_build:
+	$(KMAKE) -C $(SRC) all
+	$(KMAKE) -C $(SRC)/tools/bpf/bpftool vmlinux.h feature-clang-bpf-co-re=1
+	cd $(ZFSSRC) && CFLAGS="$(CFLAGS)" CPPFLAGS="$(CPPFLAGS)" LDFLAGS="$(LDFLAGS)" ./configure \
+	  --prefix=/usr \
+	  --sysconfdir=/etc \
+	  --sbindir=/usr/sbin \
+	  --libdir=/usr/lib/$(DEB_HOST_MULTIARCH) \
+	  --libexecdir=/usr/lib \
+	  --datadir=/usr/share \
+	  --includedir=/usr/include \
+	  --with-udevdir=/usr/lib/udev \
+	  --with-mounthelperdir=/usr/sbin \
+	  --with-dracutdir=/usr/lib/dracut \
+	  --with-pammoduledir=/usr/lib/$(DEB_HOST_MULTIARCH)/security \
+	  --enable-systemd \
+	  --disable-sysvinit \
+	  --disable-pyzfs \
+	  --with-config=all \
+	  --with-linux=$(CURDIR)/$(SRC) \
+	  --with-linux-obj=$(CURDIR)/$(SRC)
+	$(KMAKE) -C $(ZFSSRC)
+
+override_dh_auto_install:
+	install -Dm644 $(SRC)/$$($(KMAKE) -s -C $(SRC) image_name) $(IMG)/boot/vmlinuz-$(KREL)
+	install -Dm644 $(SRC)/System.map $(IMG)/boot/System.map-$(KREL)
+	install -Dm644 $(SRC)/.config $(IMG)/boot/config-$(KREL)
+	ZSTD_CLEVEL=19 $(KMAKE) -C $(SRC) INSTALL_MOD_PATH=$(IMG)/usr INSTALL_MOD_STRIP=1 \
+	  DEPMOD=/doesnt/exist modules_install
+	$(KMAKE) -C $(ZFSSRC)/module KERNELRELEASE=$(KREL) \
+	  INSTALL_MOD_PATH=$(IMG)/usr INSTALL_MOD_DIR=extra/zfs INSTALL_MOD_STRIP=1 \
+	  DEPMOD=/doesnt/exist modules_install
+	find $(IMG)/usr/lib/modules/$(KREL)/extra -name '*.ko' -exec zstd -q -19 --rm {} +
+	rm -f $(IMG)/usr/lib/modules/$(KREL)/build
+	bash debian/install-headers $(CURDIR)/$(SRC) $(HDR) $(KREL)
+	$(MAKE) -C $(ZFSSRC) DESTDIR=$(UTL) install
+	rm -rf $(UTL)/lib $(UTL)/usr/lib/modules $(UTL)/usr/src \
+	  $(UTL)/etc/init.d $(UTL)/etc/conf.d \
+	  $(UTL)/usr/share/initramfs-tools $(UTL)/usr/lib/initcpio \
+	  $(UTL)/usr/share/zfs/zfs-tests $(UTL)/usr/share/zfs/runfiles \
+	  $(UTL)/usr/share/zfs/test-runner $(UTL)/usr/bin/raidz_test
+	find $(UTL) -name '*.la' -delete
+
+override_dh_installsystemd:
+	dh_installsystemd -pzfsutils-freedomnas --no-start \
+	  zfs-import-cache.service zfs-import-scan.service zfs-import.target \
+	  zfs-mount.service zfs-share.service \
+	  zfs-volume-wait.service zfs-volumes.target zfs.target zfs-zed.service
+
+override_dh_strip:
+	dh_strip $(KERNEL_PACKAGES) --no-automatic-dbgsym
+
+override_dh_dwz:
+	dh_dwz $(KERNEL_PACKAGES)
+
+override_dh_shlibdeps:
+	dh_shlibdeps -Xvmlinux
+
+override_dh_makeshlibs:
+	dh_makeshlibs $(KERNEL_PACKAGES)
+
+.PHONY: prepare

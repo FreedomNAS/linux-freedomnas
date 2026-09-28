@@ -1,0 +1,5 @@
+linux-freedomnas (6.18.54-1) trixie; urgency=medium
+
+  * Arch's linux-lts 6.18.54-1 with OpenZFS 2.4.4, built for Debian.
+
+ -- FreedomNAS Team <dev@freedomnas.io>  Mon, 28 Sep 2026 07:00:00 +0200

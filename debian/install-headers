@@ -1,0 +1,83 @@
+#!/bin/bash
+set -euo pipefail
+
+srcdir="$1"
+pkgdir="$2"
+kernver="$3"
+karch=x86
+
+builddir="$pkgdir/usr/src/linux-headers-$kernver"
+cd "$srcdir"
+
+echo "Installing build files..."
+install -Dt "$builddir" -m644 .config Makefile Module.symvers System.map \
+  localversion.* vmlinux tools/bpf/bpftool/vmlinux.h
+install -Dt "$builddir/kernel" -m644 kernel/Makefile
+install -Dt "$builddir/arch/$karch" -m644 arch/$karch/Makefile
+cp -t "$builddir" -a scripts
+ln -srt "$builddir" "$builddir/scripts/gdb/vmlinux-gdb.py"
+
+if [[ $(scripts/config -s CONFIG_HAVE_STACK_VALIDATION) = y ]]; then
+  install -Dt "$builddir/tools/objtool" tools/objtool/objtool
+fi
+
+if [[ $(scripts/config -s CONFIG_DEBUG_INFO_BTF_MODULES) = y ]]; then
+  install -Dt "$builddir/tools/bpf/resolve_btfids" tools/bpf/resolve_btfids/resolve_btfids
+fi
+
+echo "Installing headers..."
+cp -t "$builddir" -a include
+cp -t "$builddir/arch/$karch" -a arch/$karch/include
+install -Dt "$builddir/arch/$karch/kernel" -m644 arch/$karch/kernel/asm-offsets.s
+
+install -Dt "$builddir/drivers/md" -m644 drivers/md/*.h
+install -Dt "$builddir/net/mac80211" -m644 net/mac80211/*.h
+install -Dt "$builddir/drivers/media/i2c" -m644 drivers/media/i2c/msp3400-driver.h
+install -Dt "$builddir/drivers/media/usb/dvb-usb" -m644 drivers/media/usb/dvb-usb/*.h
+install -Dt "$builddir/drivers/media/dvb-frontends" -m644 drivers/media/dvb-frontends/*.h
+install -Dt "$builddir/drivers/media/tuners" -m644 drivers/media/tuners/*.h
+install -Dt "$builddir/drivers/iio/common/hid-sensors" -m644 drivers/iio/common/hid-sensors/*.h
+
+echo "Installing KConfig files..."
+find . -name 'Kconfig*' -exec install -Dm644 {} "$builddir/{}" \;
+
+if [[ $(scripts/config -s CONFIG_RUST) = y ]]; then
+  echo "Installing Rust files..."
+  install -Dt "$builddir/rust" -m644 rust/*.rmeta
+  install -Dt "$builddir/rust" rust/*.so
+fi
+
+echo "Installing unstripped VDSO..."
+make --no-print-directory INSTALL_MOD_PATH="$pkgdir/usr" vdso_install link=
+
+echo "Removing unneeded architectures..."
+for arch in "$builddir"/arch/*/; do
+  [[ $arch = */$karch/ ]] && continue
+  rm -r "$arch"
+done
+
+echo "Removing documentation..."
+rm -rf "$builddir/Documentation"
+
+echo "Removing broken symlinks..."
+find -L "$builddir" -type l -delete
+
+echo "Removing loose objects..."
+find "$builddir" -type f -name '*.o' -delete
+
+echo "Stripping build tools..."
+while read -rd '' file; do
+  case "$(file -Sib "$file")" in
+    application/x-sharedlib\;*)      strip --strip-unneeded "$file" ;;
+    application/x-archive\;*)        strip --strip-debug "$file" ;;
+    application/x-executable\;*)     strip --strip-all "$file" ;;
+    application/x-pie-executable\;*) strip --strip-unneeded "$file" ;;
+  esac
+done < <(find "$builddir" -type f -perm -u+x ! -name vmlinux -print0)
+
+echo "Stripping vmlinux..."
+strip --strip-debug "$builddir/vmlinux"
+
+echo "Adding the build symlink..."
+mkdir -p "$pkgdir/usr/lib/modules/$kernver"
+ln -sr "$builddir" "$pkgdir/usr/lib/modules/$kernver/build"
