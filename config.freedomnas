@@ -1,0 +1,35 @@
+# FreedomNAS changes to Arch's config.x86_64, merged over it before
+# olddefconfig. config.x86_64 stays Arch's file untouched, so following an
+# Arch update is still a plain copy; this file says what a NAS leaves out.
+#
+# Kept on purpose: Wi-Fi (some NAS boxes are mini-PCs or laptops with no
+# cable), i915/xe and amdgpu (hardware transcoding for media servers, and
+# GPU power management at idle), BMC and virtual machine display drivers,
+# simpledrm/efifb/vesafb for the console.
+
+# Rust: no driver a NAS needs is written in it, and without it the build
+# needs no rustc, bindgen or rust-src.
+# CONFIG_RUST is not set
+
+# Sound, Bluetooth, TV tuners and webcams.
+# CONFIG_SOUND is not set
+# CONFIG_BT is not set
+# CONFIG_MEDIA_SUPPORT is not set
+
+# Large desktop GPU drivers nobody transcodes with: NVIDIA (nouveau),
+# pre-GCN Radeon, Intel GMA500.
+# CONFIG_DRM_NOUVEAU is not set
+# CONFIG_DRM_RADEON is not set
+# CONFIG_DRM_GMA500 is not set
+
+# Subsystems with no use on a NAS.
+# CONFIG_ISDN is not set
+# CONFIG_HAMRADIO is not set
+# CONFIG_CAN is not set
+# CONFIG_NFC is not set
+# CONFIG_INPUT_JOYSTICK is not set
+# CONFIG_INPUT_TABLET is not set
+# CONFIG_INPUT_TOUCHSCREEN is not set
+# CONFIG_CHROME_PLATFORMS is not set
+# CONFIG_SURFACE_PLATFORMS is not set
+# CONFIG_ANDROID_BINDER_IPC is not set

@@ -1,6 +1,6 @@
 pkgbase=linux-freedomnas
 pkgver=6.18.54
-pkgrel=1
+pkgrel=2
 _zfsver=2.4.4
 pkgdesc='FreedomNAS LTS Linux with OpenZFS'
 url='https://codeberg.org/FreedomNAS'
@@ -19,9 +19,6 @@ makedepends=(
   pahole
   perl
   python
-  rust
-  rust-bindgen
-  rust-src
   tar
   xxhash
   xz
@@ -45,6 +42,7 @@ source=(
   0001-add-sysctl-to-allow-disabling-unprivileged-CLONE_NEW.patch
   0002-drm-amdgpu-avoid-memory-allocation-in-the-critical-c.patch
   0003-drm-amdgpu-use-GFP_ATOMIC-instead-of-NOWAIT-in-the-c.patch
+  config.freedomnas
 )
 source_x86_64=(config.x86_64)
 validpgpkeys=(
@@ -58,7 +56,8 @@ sha256sums=('9df30b02dd8102bbd0be52556288ef6889ddbe7f1ddb96fbf847d0becf3eacac'
             'SKIP'
             '0bb3b4cda53db35c10e0a34defb5f52f3c91895d7b4a9f93b3f40f5401a71e02'
             '70d54dfde13e52ea1109c4222a987a29ada68feec35dca9ce4afd6f7977e8740'
-            '44caa7c6a79055539f16ab118bece58934cdf93557643a50017634366c864b91')
+            '44caa7c6a79055539f16ab118bece58934cdf93557643a50017634366c864b91'
+            '7c1f483d83231008aa60123e0262807299242271846ad60bafc1f80400a0f84c')
 sha256sums_x86_64=('aef082c1ee2484304a180fc6e8b320f7c93b27843a5deb74e1a92fe32d1dd86c')
 
 export KBUILD_BUILD_HOST=freedomnas
@@ -84,8 +83,13 @@ prepare() {
 
   echo "Setting config..."
   cp ../config.$CARCH .config
+  scripts/kconfig/merge_config.sh -m .config ../config.freedomnas
   make olddefconfig
   diff -u ../config.$CARCH .config || :
+  local opt
+  for opt in $(sed -n 's/^# \(CONFIG_[A-Z0-9_]*\) is not set$/\1/p' ../config.freedomnas); do
+    ! grep -q "^$opt=" .config || { echo "$opt is still set" >&2; return 1; }
+  done
 
   make -s kernelrelease > version
   echo "Prepared $pkgbase version $(<version)"

@@ -6,7 +6,6 @@ Build-Depends: debhelper-compat (= 13),
  bc, bison, flex, cpio, file, kmod, rsync, xz-utils, zstd,
  dwarves, openssl, perl, python3,
  libelf-dev, libssl-dev, zlib1g-dev,
- rustc, rust-src, bindgen, libclang-dev,
  gawk, uuid-dev, libblkid-dev, libudev-dev, libaio-dev,
  libtirpc-dev, libpam0g-dev
 Standards-Version: 4.7.0

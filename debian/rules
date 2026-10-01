@@ -51,8 +51,12 @@ override_dh_auto_configure:
 	echo "-$(PKGREL)" > $(SRC)/localversion.10-pkgrel
 	echo "$(PKGSUFFIX)" > $(SRC)/localversion.20-pkgname
 	cp config.x86_64 $(SRC)/.config
+	cd $(SRC) && scripts/kconfig/merge_config.sh -m .config ../config.freedomnas
 	$(KMAKE) -C $(SRC) olddefconfig
 	diff -u config.x86_64 $(SRC)/.config || :
+	for o in $$(sed -n 's/^# \(CONFIG_[A-Z0-9_]*\) is not set$$/\1/p' config.freedomnas); do \
+	  ! grep -q "^$$o=" $(SRC)/.config || { echo "$$o is still set" >&2; exit 1; }; \
+	done
 	test "$$($(KMAKE) -s -C $(SRC) kernelrelease)" = "$(KREL)"
 
 override_dh_auto_build:
