@@ -1,6 +1,6 @@
 pkgbase=linux-freedomnas
 pkgver=6.18.54
-pkgrel=2
+pkgrel=3
 _zfsver=2.4.4
 pkgdesc='FreedomNAS LTS Linux with OpenZFS'
 url='https://codeberg.org/FreedomNAS'

@@ -99,7 +99,8 @@ override_dh_auto_install:
 	  $(UTL)/etc/init.d $(UTL)/etc/conf.d \
 	  $(UTL)/usr/share/initramfs-tools $(UTL)/usr/lib/initcpio \
 	  $(UTL)/usr/share/zfs/zfs-tests $(UTL)/usr/share/zfs/runfiles \
-	  $(UTL)/usr/share/zfs/test-runner $(UTL)/usr/bin/raidz_test
+	  $(UTL)/usr/share/zfs/test-runner $(UTL)/usr/bin/raidz_test \
+	  $(UTL)/usr/share/pam-configs
 	find $(UTL) -name '*.la' -delete
 
 override_dh_installsystemd:

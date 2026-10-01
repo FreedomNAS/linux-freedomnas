@@ -1,3 +1,10 @@
+linux-freedomnas (6.18.54-3) trixie; urgency=medium
+
+  * zfsutils-freedomnas no longer ships the zfs_key pam-auth-update profile:
+    enabled by default, it made chpasswd fail for every account.
+
+ -- FreedomNAS Team <dev@freedomnas.io>  Thu, 01 Oct 2026 20:30:00 +0200
+
 linux-freedomnas (6.18.54-1) trixie; urgency=medium
 
   * Arch's linux-lts 6.18.54-1 with OpenZFS 2.4.4, built for Debian.
