@@ -1,5 +1,5 @@
 pkgbase=linux-freedomnas
-pkgver=6.18.62
+pkgver=6.18.63
 pkgrel=1
 _zfsver=2.4.4
 pkgdesc='FreedomNAS LTS Linux with OpenZFS'
@@ -50,7 +50,7 @@ validpgpkeys=(
   647F28654894E3BD457199BE38DBBDC86092693E
   4F3BA9AB6D1F8D683DC2DFB56AD860EED4598027
 )
-sha256sums=('490a7aedf1b355c565d3a6c05333ccccb5da82064eca46b590448a7099d7d651'
+sha256sums=('81764a545072d160748beff4d9de2e7d95aa9f16e8261110288f067a2cc61d71'
             'SKIP'
             '2a3c70d55a37cc71618a95a60e81ad66530201eb118d37741dc92efcf848c8b1'
             'SKIP'
@@ -58,7 +58,7 @@ sha256sums=('490a7aedf1b355c565d3a6c05333ccccb5da82064eca46b590448a7099d7d651'
             'a5497e9e0a47a581cf7d259419b1ede98096512d2e671222caf59a06816c9167'
             '44caa7c6a79055539f16ab118bece58934cdf93557643a50017634366c864b91'
             '7c1f483d83231008aa60123e0262807299242271846ad60bafc1f80400a0f84c')
-sha256sums_x86_64=('7b1a0cd6d8b97428e46959d8555c51d5752af0716dffc866dfd1924fbe2a2531')
+sha256sums_x86_64=('26add142e3830b18338b12fe7d311d57358aebaba7c121b2a0d0d6ece3ba946c')
 
 export KBUILD_BUILD_HOST=freedomnas
 export KBUILD_BUILD_USER=$pkgbase
