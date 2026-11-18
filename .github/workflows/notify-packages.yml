@@ -1,11 +1,11 @@
 name: notify-packages
 
-# Tells freedomnas-deb that this repository changed. It does not build at
-# once: its gather-pushes workflow waits until ten minutes pass without a
-# push, so a burst of pushes to several repositories makes a single build.
-# A push to dev rebuilds the dev snapshots, one to main or a release tag
-# the release. The token is the organization secret PACKAGES_DISPATCH_TOKEN
-# (freedomnas-deb/docs/ci-setup.md).
+# Tells the package repositories (Debian, Arch, Void, FreeBSD) that this
+# repository changed. They do not build at once: each one's gather-pushes
+# workflow waits until ten minutes pass without a push, so a burst of pushes
+# to several repositories makes a single build. A push to dev rebuilds the
+# dev snapshots, one to main or a release tag the release. The token is the
+# organization secret PACKAGES_DISPATCH_TOKEN (freedomnas-deb/docs/ci-setup.md).
 
 on:
   push:
@@ -16,15 +16,19 @@ jobs:
   notify:
     runs-on: ubuntu-24.04
     steps:
-      - name: Notify freedomnas-deb
+      - name: Notify the package repositories
         env:
           GH_TOKEN: ${{ secrets.PACKAGES_DISPATCH_TOKEN }}
         run: |
           [ -n "$GH_TOKEN" ] || { echo "the PACKAGES_DISPATCH_TOKEN secret is not set" >&2; exit 1; }
           ref=dev
           [ "$GITHUB_REF_NAME" = dev ] || ref=main
-          gh api repos/FreedomNAS/freedomnas-deb/dispatches \
-            -f event_type=component-pushed \
-            -f "client_payload[ref]=$ref" \
-            -f "client_payload[repository]=$GITHUB_REPOSITORY" \
-            -f "client_payload[sha]=$GITHUB_SHA"
+          failed=""
+          for repo in freedomnas-deb freedomnas-arch freedomnas-void freedomnas-freebsd; do
+            gh api "repos/FreedomNAS/$repo/dispatches" \
+              -f event_type=component-pushed \
+              -f "client_payload[ref]=$ref" \
+              -f "client_payload[repository]=$GITHUB_REPOSITORY" \
+              -f "client_payload[sha]=$GITHUB_SHA" || failed="$failed $repo"
+          done
+          [ -z "$failed" ] || { echo "could not notify:$failed" >&2; exit 1; }
