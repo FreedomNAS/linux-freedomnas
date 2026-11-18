@@ -1,0 +1,30 @@
+name: notify-packages
+
+# Tells freedomnas-deb that this repository changed. It does not build at
+# once: its gather-pushes workflow waits until ten minutes pass without a
+# push, so a burst of pushes to several repositories makes a single build.
+# A push to dev rebuilds the dev snapshots, one to main or a release tag
+# the release. The token is the organization secret PACKAGES_DISPATCH_TOKEN
+# (freedomnas-deb/docs/ci-setup.md).
+
+on:
+  push:
+    branches: [dev, main]
+    tags: ["v*"]
+
+jobs:
+  notify:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Notify freedomnas-deb
+        env:
+          GH_TOKEN: ${{ secrets.PACKAGES_DISPATCH_TOKEN }}
+        run: |
+          [ -n "$GH_TOKEN" ] || { echo "the PACKAGES_DISPATCH_TOKEN secret is not set" >&2; exit 1; }
+          ref=dev
+          [ "$GITHUB_REF_NAME" = dev ] || ref=main
+          gh api repos/FreedomNAS/freedomnas-deb/dispatches \
+            -f event_type=component-pushed \
+            -f "client_payload[ref]=$ref" \
+            -f "client_payload[repository]=$GITHUB_REPOSITORY" \
+            -f "client_payload[sha]=$GITHUB_SHA"
