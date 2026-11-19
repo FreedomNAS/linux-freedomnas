@@ -10,9 +10,9 @@ Build-Depends: debhelper-compat (= 13),
  libtirpc-dev, libpam0g-dev
 Standards-Version: 4.7.0
 Rules-Requires-Root: no
-Homepage: https://codeberg.org/FreedomNAS/linux-freedomnas
-Vcs-Browser: https://codeberg.org/FreedomNAS/linux-freedomnas
-Vcs-Git: https://codeberg.org/FreedomNAS/linux-freedomnas.git
+Homepage: https://github.com/FreedomNAS/linux-freedomnas
+Vcs-Browser: https://github.com/FreedomNAS/linux-freedomnas
+Vcs-Git: https://github.com/FreedomNAS/linux-freedomnas.git
 
 Package: linux-image-@KREL@
 Architecture: amd64
