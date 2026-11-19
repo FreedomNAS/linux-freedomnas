@@ -1,19 +1,8 @@
-# Keeps PKGBUILD on the newest Linux LTS that OpenZFS supports
-# (bin/follow-lts.py): point releases of our series as soon as kernel.org
-# publishes them, a new LTS series once OpenZFS and Arch's linux-lts are
-# there. Tarballs are checked against their PGP signatures and every patch
-# must apply before anything is committed; the commit goes to dev, where
-# the nightly publish-packages of freedomnas-arch and freedomnas-deb find a
-# kernel version not published yet and build it.
-#
-# Needs the secret LTS_PUSH_TOKEN: a Codeberg access token with write
-# access to this repository (scope write:repository).
+# Switched off: follow-lts runs on GitHub (.github/workflows/follow-lts.yml).
 name: follow-lts
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: "47 3 * * *"
 
 jobs:
   follow:

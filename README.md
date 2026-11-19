@@ -59,9 +59,9 @@ taken as they are (a change of theirs alone gives a new `pkgrel`); the docs
 package is dropped. Every tarball is checked against its PGP signature in
 `keys/pgp` before its sha256 goes into `PKGBUILD`, and every patch must
 apply to the new sources, or nothing is committed. The commit goes to
-`dev` (secret `LTS_PUSH_TOKEN`: a Codeberg token with write access to this
-repository), where the nightly builds of freedomnas-arch and freedomnas-deb
-find a version not published yet and build it. `--apply` without CI does
+`dev` (`.github/workflows/follow-lts.yml`, every night), and the workflow
+tells freedomnas-deb and freedomnas-arch, which find a version not published
+yet and build it. `--apply` without CI does
 the same locally; without `--apply` it only says what it would do.
 `config.x86_64` stays Arch's file as is: what FreedomNAS leaves out (Rust,
 sound, Bluetooth, TV tuners, nouveau and old Radeon, and a few subsystems
@@ -75,7 +75,7 @@ checked against the release key of Tony Hutter
 ## Building and publishing
 
 The build and upload scripts live in
-[freedomnas-arch](https://codeberg.org/FreedomNAS/freedomnas-arch), next to
+[freedomnas-arch](https://github.com/FreedomNAS/freedomnas-arch), next to
 the other Arch packages, and take this checkout as a path:
 
 ```sh
@@ -84,7 +84,7 @@ the other Arch packages, and take this checkout as a path:
 ```
 
 For Debian the script lives in
-[freedomnas-deb](https://codeberg.org/FreedomNAS/freedomnas-deb); it fetches
+[freedomnas-deb](https://github.com/FreedomNAS/freedomnas-deb); it fetches
 and verifies the tarballs listed in `PKGBUILD`, then runs
 `dpkg-buildpackage` on a copy of this checkout:
 
