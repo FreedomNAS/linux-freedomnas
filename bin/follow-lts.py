@@ -24,6 +24,7 @@ prints what it would do. Exit 0 with "up to date" when nothing is newer.
 import argparse
 import hashlib
 import json
+import os
 import re
 import shutil
 import subprocess
@@ -44,7 +45,11 @@ ARCH = "https://gitlab.archlinux.org/archlinux/packaging/packages/linux-lts/-/ra
 
 
 def fetch(url: str) -> bytes:
-    request = urllib.request.Request(url, headers={"User-Agent": "linux-freedomnas follow-lts"})
+    headers = {"User-Agent": "linux-freedomnas follow-lts"}
+    token = os.environ.get("GITHUB_TOKEN")
+    if token and url.startswith("https://api.github.com/"):
+        headers["Authorization"] = f"Bearer {token}"
+    request = urllib.request.Request(url, headers=headers)
     with urllib.request.urlopen(request, timeout=120) as response:
         return response.read()
 
