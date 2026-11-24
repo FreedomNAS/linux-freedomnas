@@ -1,6 +1,6 @@
 pkgbase=linux-freedomnas
 pkgver=6.18.65
-pkgrel=1
+pkgrel=2
 _zfsver=2.4.4
 pkgdesc='FreedomNAS LTS Linux with OpenZFS'
 url='https://github.com/FreedomNAS'
@@ -58,7 +58,7 @@ sha256sums=('c92606f956f09dc50b5a0e2af9e86763fce27ada1647de97f8d1ac8cfc95801d'
             'a5497e9e0a47a581cf7d259419b1ede98096512d2e671222caf59a06816c9167'
             '44caa7c6a79055539f16ab118bece58934cdf93557643a50017634366c864b91'
             '7c1f483d83231008aa60123e0262807299242271846ad60bafc1f80400a0f84c')
-sha256sums_x86_64=('2db0c283e7eceb641b3a9b8124244902136f150416aa0d05a363d8d67545b9ad')
+sha256sums_x86_64=('a9d691733eb835297003fb1a26e6a6073e10cf8c0f5598a0fff4862b3f726ebb')
 
 export KBUILD_BUILD_HOST=freedomnas
 export KBUILD_BUILD_USER=$pkgbase
